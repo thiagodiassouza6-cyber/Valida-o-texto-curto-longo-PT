@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Validação de Campos</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background-color: #f4f4f4;
+    }
+    h1 {
+        color: #333;
+    }
+    input[type=text] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        font-size: 14px;
+    }
+    button {
+        padding: 10px 20px;
+        font-size: 16px;
+        background-color: #007BFF;
+        color: white;
+        border: none;
+        cursor: pointer;
+        margin-right: 10px;
+    }
+    button:hover {
+        background-color: #0056b3;
+    }
+    .output {
+        margin-top: 20px;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+<h1>Validação de Campos</h1>
+<p>Preencha os campos abaixo:</p>
+
+<label for="textoCurto">TEXTO CURTO PT:</label>
+<input type="text" id="textoCurto" placeholder="Digite o texto curto...">
+
+<label for="textoLongo">TEXTO LONGO PT:</label>
+<input type="text" id="textoLongo" placeholder="Digite o texto longo...">
+
+<br>
+<button onclick="validarCampos()">Validar</button>
+<button onclick="limparCampos()">Limpar</button>
+
+<div class="output" id="mensagem"></div>
+
+<script>
+function validarCampos() {
+    let curto = document.getElementById('textoCurto').value.trim();
+    let longo = document.getElementById('textoLongo').value.trim();
+
+    if (!curto || !longo) {
+        document.getElementById('mensagem').innerText = 'Por favor, preencha ambos os campos.';
+        document.getElementById('mensagem').style.color = 'red';
+        return;
+    }
+
+    // Pegar a primeira palavra do texto longo
+    let primeiraPalavraLongo = longo.split(/\s+/)[0];
+
+    if (curto.toUpperCase() === primeiraPalavraLongo.toUpperCase()) {
+        document.getElementById('mensagem').innerText = '✅ Validação bem-sucedida! As palavras coincidem.';
+        document.getElementById('mensagem').style.color = 'green';
+    } else {
+        document.getElementById('mensagem').innerText = '❌ Erro: A primeira palavra do TEXTO LONGO PT não coincide com TEXTO CURTO PT.';
+        document.getElementById('mensagem').style.color = 'red';
+    }
+}
+
+function limparCampos() {
+    document.getElementById('textoCurto').value = '';
+    document.getElementById('textoLongo').value = '';
+    document.getElementById('mensagem').innerText = '';
+}
+</script>
+</body>
+</html>
