@@ -1,86 +1,287 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Validação de Campos</title>
+<title>Validação de Campos — Simplificada</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        margin: 20px;
-        background-color: #f4f4f4;
-    }
-    h1 {
-        color: #333;
-    }
-    input[type=text] {
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 10px;
-        font-size: 14px;
-    }
-    button {
-        padding: 10px 20px;
-        font-size: 16px;
-        background-color: #007BFF;
-        color: white;
-        border: none;
-        cursor: pointer;
-        margin-right: 10px;
-    }
-    button:hover {
-        background-color: #0056b3;
-    }
-    .output {
-        margin-top: 20px;
-        font-weight: bold;
-    }
+  :root{
+    --bg:#eef3f6;
+    --card:#ffffff;
+    --accent:#0066cc;
+    --accent-2:#0b77d6;
+    --muted:#6b7280;
+    --success:#16a34a;
+    --danger:#dc2626;
+    --radius:12px;
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family: "Inter", Arial, sans-serif;
+    background: linear-gradient(180deg,var(--bg), #f7fafc 120%);
+    color:#111827;
+    padding:28px;
+  }
+
+  /* Layout */
+  .wrap{
+    display:grid;
+    grid-template-columns: 360px 1fr;
+    gap:28px;
+    align-items:start;
+    max-width:1200px;
+    margin:0 auto;
+  }
+
+  .card-left{
+    background:var(--card);
+    border-radius:var(--radius);
+    padding:28px;
+    box-shadow: 0 10px 30px rgba(2,6,23,0.06);
+    min-height:220px;
+  }
+  .card-left .title{ font-size:24px; margin:10px 0 6px; font-weight:700; color:#0b1220; }
+  .card-left .desc{ color:var(--muted); line-height:1.5; margin-bottom:12px; }
+  .meta{ margin-top:12px; font-size:13px; color:var(--muted) }
+
+  .card-right{
+    background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.9));
+    padding:20px;
+    border-radius:12px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 6px 24px rgba(2,6,23,0.04);
+  }
+
+  form .row{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    margin-bottom:16px;
+  }
+  label{
+    display:block;
+    font-size:13px;
+    color:#111827;
+    font-weight:700;
+    margin-bottom:8px;
+  }
+  .col{
+    flex:1;
+    min-width:0;
+  }
+
+  input[type="text"]{
+    width:100%;
+    padding:12px 14px;
+    border-radius:10px;
+    border:1px solid #e6e9ee;
+    font-size:15px;
+    color:#0f172a;
+    background:transparent;
+    transition:box-shadow .15s, border-color .15s;
+  }
+  input[type="text"]:focus{
+    outline:none;
+    border-color: var(--accent-2);
+    box-shadow:0 6px 18px rgba(11,119,214,0.12);
+  }
+
+  .actions{
+    display:flex;
+    gap:12px;
+    justify-content:flex-end;
+    margin-top:4px;
+  }
+
+  /* Botões */
+  .btn{
+    padding:10px 18px;
+    font-size:14px;
+    font-weight:600;
+    border-radius:8px;
+    cursor:pointer;
+    border:1px solid transparent;
+    transition:background-color .15s, opacity .15s;
+  }
+  .btn-validate{ background:var(--accent); color:white; }
+  .btn-validate:hover{ background:var(--accent-2) }
+  .btn-clear{ background:#f3f4f6; color:var(--muted); border-color:#e6e9ee; }
+  .btn-clear:hover{ background:#e5e7eb; }
+  .btn-pdf{ background:#10b981; color:white; }
+  .btn-pdf:hover{ background:#059669; }
+
+
+  .message{
+    margin-top:18px;
+    padding:12px 14px;
+    border-radius:10px;
+    display:none;
+    font-weight:600;
+  }
+  .message.ok{ background:#ecfdf5; color:#065f46; border:1px solid #bbf7d0; display:block; }
+  .message.err{ background:#fff1f2; color:#7f1d1d; border:1px solid #fecaca; display:block; }
+
+  @media (max-width:980px){
+    .wrap{ grid-template-columns: 1fr; }
+    .card-left{ order:2 }
+    .card-right{ order:1 }
+    .controls{ display:none }
+  }
 </style>
 </head>
 <body>
-<h1>Validação de Campos</h1>
-<p>Preencha os campos abaixo:</p>
 
-<label for="textoCurto">TEXTO CURTO PT:</label>
-<input type="text" id="textoCurto" placeholder="Digite o texto curto...">
+  <div class="wrap">
+    <aside class="card-left" id="cardToPrint">
+      <div style="display:flex; gap:12px; align-items:center;">
+        <img src="https://www.citypng.com/public/uploads/preview/nestle-logo-black-image-png-701751694709065phkqydygvl.png" alt="Nestlé Logo" style="height:58px; border-radius:6px; background:white; padding:6px; box-shadow:0 2px 8px rgba(2,6,23,0.03);">
+        <div>
+          <div style="font-size:13px; color:var(--muted); font-weight:700;">Relatório</div>
+          <div style="font-size:12px; color:var(--muted);">Gerado automaticamente</div>
+        </div>
+      </div>
 
-<label for="textoLongo">TEXTO LONGO PT:</label>
-<input type="text" id="textoLongo" placeholder="Digite o texto longo...">
+      <div class="title">Validação de Campos</div>
+      <div class="desc">Ferramenta oficial para comparação entre o texto curto do cadastro e o texto longo do material. Use o botão validar para checar a primeira palavra e gere o PDF para registro.</div>
 
-<br>
-<button onclick="validarCampos()">Validar</button>
-<button onclick="limparCampos()">Limpar</button>
+      <div class="meta">
+        <div><strong>Data:</strong> <span id="metaData">25/11/2025, 12:24:23</span></div>
+        <div style="margin-top:6px;"><strong>Status:</strong> <span id="metaStatus">—</span></div>
+      </div>
+    </aside>
 
-<div class="output" id="mensagem"></div>
+    <section class="card-right">
+      <form onsubmit="event.preventDefault(); validarCampos();">
+        <div class="row">
+          <div class="col">
+            <label for="textoCurto">TEXTO CURTO PT:</label>
+            <input type="text" id="textoCurto" placeholder="Digite o texto curto...">
+          </div>
+
+          <div class="col">
+            <label for="textoLongo">TEXTO LONGO PT:</label>
+            <input type="text" id="textoLongo" placeholder="Digite o texto longo...">
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn btn-validate" onclick="validarCampos();">Validar</button>
+          <button type="button" class="btn btn-clear" onclick="limparCampos();">Limpar</button>
+          <button type="button" class="btn btn-pdf" onclick="gerarPDF();">Gerar PDF</button>
+        </div>
+
+        <div id="mensagem" class="message" style="display: none;"></div>
+      </form>
+    </section>
+  </div>
 
 <script>
-function validarCampos() {
-    let curto = document.getElementById('textoCurto').value.trim();
-    let longo = document.getElementById('textoLongo').value.trim();
+  // meta data
+  document.getElementById('metaData').innerText = new Date().toLocaleString();
 
-    if (!curto || !longo) {
-        document.getElementById('mensagem').innerText = 'Por favor, preencha ambos os campos.';
-        document.getElementById('mensagem').style.color = 'red';
-        return;
+  function validarCampos(){
+    const curto = document.getElementById('textoCurto').value.trim();
+    const longo = document.getElementById('textoLongo').value.trim();
+    const msg = document.getElementById('mensagem');
+    const metaStatus = document.getElementById('metaStatus');
+
+    if(!curto || !longo){
+      msg.className='message err';
+      msg.innerText = 'Por favor, preencha ambos os campos.';
+      msg.style.display='block';
+      metaStatus.innerText = 'Incompleto';
+      return;
     }
 
-    // Pegar a primeira palavra do texto longo
-    let primeiraPalavraLongo = longo.split(/\s+/)[0];
+    const p1 = curto.split(/\s+/)[0];
+    const p2 = longo.split(/\s+/)[0];
 
-    if (curto.toUpperCase() === primeiraPalavraLongo.toUpperCase()) {
-        document.getElementById('mensagem').innerText = '✅ Validação bem-sucedida! As palavras coincidem.';
-        document.getElementById('mensagem').style.color = 'green';
+    // Verifica se a primeira palavra coincide (ignorando caixa)
+    if(p1.toUpperCase() === p2.toUpperCase()){
+      msg.className='message ok';
+      msg.innerText = '✅ Validação bem-sucedida! As primeiras palavras coincidem.';
+      metaStatus.innerText = 'OK';
     } else {
-        document.getElementById('mensagem').innerText = '❌ Erro: A primeira palavra do TEXTO LONGO PT não coincide com TEXTO CURTO PT.';
-        document.getElementById('mensagem').style.color = 'red';
+      msg.className='message err';
+      msg.innerText = '❌ Erro: A primeira palavra do TEXTO LONGO (' + p2 + ') não coincide com a do TEXTO CURTO (' + p1 + ').';
+      metaStatus.innerText = 'Divergência';
     }
-}
+    msg.style.display='block';
+  }
 
-function limparCampos() {
-    document.getElementById('textoCurto').value = '';
-    document.getElementById('textoLongo').value = '';
-    document.getElementById('mensagem').innerText = '';
-}
+  function limparCampos(){
+    document.getElementById('textoCurto').value='';
+    document.getElementById('textoLongo').value='';
+    document.getElementById('mensagem').style.display='none';
+    document.getElementById('metaStatus').innerText = '—';
+  }
+
+  // Gera PDF a partir do elemento #cardToPrint (A4)
+  async function gerarPDF(){
+    const element = document.getElementById('cardToPrint');
+
+    const btns = document.querySelectorAll('.btn-pdf');
+    btns.forEach(b=>{ b.disabled=true; b.style.opacity=0.7; b.innerText='Gerando...'; });
+
+    try {
+      const canvas = await html2canvas(element, { scale: 2, useCORS:true, allowTaint:true, logging:false });
+      const imgData = canvas.toDataURL('image/png', 1.0);
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF('p','pt','a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 28;
+
+      const imgWidth = pageWidth - margin*2;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      if(imgHeight <= (pageHeight - margin*2)){
+        pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
+      } else {
+        // Lógica para múltiplas páginas, caso o card seja muito grande
+        let remainingHeight = canvas.height;
+        let position = 0;
+        const pageCanvas = document.createElement('canvas');
+        const ctx = pageCanvas.getContext('2d');
+
+        const pxPerPt = canvas.width / imgWidth;
+        const sliceHeightPx = Math.floor((pageHeight - margin*2) * pxPerPt);
+
+        while(remainingHeight > 0){
+          pageCanvas.width = canvas.width;
+          pageCanvas.height = Math.min(sliceHeightPx, remainingHeight);
+          ctx.clearRect(0,0,pageCanvas.width,pageCanvas.height);
+          ctx.drawImage(canvas, 0, position, pageCanvas.width, pageCanvas.height, 0,0,pageCanvas.width,pageCanvas.height);
+          const chunk = pageCanvas.toDataURL('image/png', 1.0);
+
+          if(position === 0){
+            pdf.addImage(chunk, 'PNG', margin, margin, imgWidth, (pageCanvas.height / canvas.width) * imgWidth);
+          } else {
+            pdf.addPage();
+            pdf.addImage(chunk, 'PNG', margin, margin, imgWidth, (pageCanvas.height / canvas.width) * imgWidth);
+          }
+
+          remainingHeight -= pageCanvas.height;
+          position += pageCanvas.height;
+        }
+      }
+
+      const ts = new Date();
+      const fname = `validacao_${ts.getFullYear()}${(ts.getMonth()+1).toString().padStart(2,'0')}${ts.getDate().toString().padStart(2,'0')}_${ts.getHours().toString().padStart(2,'0')}${ts.getMinutes().toString().padStart(2,'0')}.pdf`;
+      pdf.save(fname);
+
+    } catch(e){
+      console.error('Erro ao gerar PDF', e);
+      alert('Erro ao gerar PDF. Veja o console.');
+    } finally {
+      btns.forEach(b=>{ b.disabled=false; b.style.opacity=1; b.innerText='Gerar PDF'; });
+    }
+  }
 </script>
+
 </body>
 </html>
