@@ -139,13 +139,13 @@
   .card-left .desc{ color:var(--muted); line-height:1.5; margin-bottom:12px; }
   .meta{ margin-top:12px; font-size:13px; color:var(--muted) }
 
-  /* NOVO: Estilo para garantir que textos longos quebrem a linha no card */
+  /* Estilo para quebra de linha no card do PDF */
   .meta span { 
     word-break: break-word; 
-    display: block; /* Garante que o span ocupe toda a largura */
+    display: block; 
   }
   .meta strong {
-      display: block; /* Garante que o label Strong fique em uma linha separada */
+      display: block; 
       margin-top: 10px;
   }
 
@@ -194,6 +194,28 @@
     box-shadow:0 0 0 3px rgba(0,102,204,0.1), 0 6px 18px rgba(11,119,214,0.12);
     background:#fff;
   }
+
+  /* NOVO: Estilo para o botão de cópia */
+  .btn-copy {
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 500;
+      margin-top: 4px; 
+      background: #f3f4f6;
+      color: #4b5563;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+  }
+  .btn-copy:hover {
+      background: #e5e7eb;
+      color: #1f2937;
+  }
+  .btn-copy:active {
+      transform: translateY(1px);
+  }
+  /* FIM NOVO */
 
   .actions{
     display:flex;
@@ -301,12 +323,18 @@
           <div class="col">
             <label for="textoCurto">TEXTO CURTO PT:</label>
             <input type="text" id="textoCurto" placeholder="Digite o texto curto...">
-          </div>
+            <button type="button" class="btn-copy" id="btn-copy-textoCurto" onclick="copiarTexto('textoCurto')">
+                📋 Copiar
+            </button>
+            </div>
 
           <div class="col">
             <label for="textoLongo">TEXTO LONGO PT:</label>
             <input type="text" id="textoLongo" placeholder="Digite o texto longo...">
-          </div>
+            <button type="button" class="btn-copy" id="btn-copy-textoLongo" onclick="copiarTexto('textoLongo')">
+                📋 Copiar
+            </button>
+            </div>
         </div>
 
         <div class="actions">
@@ -331,12 +359,10 @@
       const errorMsg = document.getElementById('login-error');
 
       if (user === CORRECT_USER && pass === CORRECT_PASS) {
-          // Acesso concedido
           document.getElementById('login-overlay').style.display = 'none';
-          document.getElementById('main-content').style.display = 'grid'; // Mostra o conteúdo
+          document.getElementById('main-content').style.display = 'grid'; 
           errorMsg.style.display = 'none';
       } else {
-          // Erro no login
           errorMsg.style.display = 'block';
       }
   }
@@ -354,6 +380,28 @@
       }
   }
 
+  // NOVO: Função para copiar o texto do campo
+  function copiarTexto(inputId) {
+      const input = document.getElementById(inputId);
+      const button = document.getElementById('btn-copy-' + inputId);
+      
+      // Usa a API Clipboard (moderna)
+      navigator.clipboard.writeText(input.value)
+          .then(() => {
+              const originalText = button.innerText;
+              button.innerText = '✅ Copiado!'; 
+              
+              setTimeout(() => {
+                  button.innerText = originalText;
+              }, 1500);
+          })
+          .catch(err => {
+              console.error('Erro ao copiar texto: ', err);
+              alert('Não foi possível copiar o texto. O navegador pode não suportar esta função.');
+          });
+  }
+  // FIM NOVO
+
 
   document.getElementById('metaData').innerText = new Date().toLocaleString();
 
@@ -363,10 +411,9 @@
     const msg = document.getElementById('mensagem');
     const metaStatus = document.getElementById('metaStatus');
 
-    // NOVO: Atualiza os campos no card antes de rodar a validação
+    // Atualiza os campos no card para o PDF
     document.getElementById('pdfTextoCurto').innerText = curto || 'Não preenchido';
     document.getElementById('pdfTextoLongo').innerText = longo || 'Não preenchido';
-    // FIM NOVO
 
     if(!curto || !longo){
       msg.className='message err';
@@ -397,19 +444,17 @@
     document.getElementById('textoLongo').value='';
     document.getElementById('mensagem').style.display='none';
     document.getElementById('metaStatus').innerText = '—';
-    // NOVO: Limpa os campos de registro também
     document.getElementById('pdfTextoCurto').innerText = '—';
     document.getElementById('pdfTextoLongo').innerText = '—';
   }
 
   // Gera PDF a partir do elemento #cardToPrint (A4)
   async function gerarPDF(){
-    // NOVO: Garante que os campos de registro tenham o valor mais atualizado dos inputs
+    // Garante que os campos de registro tenham o valor mais atualizado dos inputs
     const curto = document.getElementById('textoCurto').value.trim();
     const longo = document.getElementById('textoLongo').value.trim();
     document.getElementById('pdfTextoCurto').innerText = curto || 'Não preenchido';
     document.getElementById('pdfTextoLongo').innerText = longo || 'Não preenchido';
-    // FIM NOVO
 
     const element = document.getElementById('cardToPrint');
 
