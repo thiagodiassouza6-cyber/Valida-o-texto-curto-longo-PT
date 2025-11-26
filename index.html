@@ -60,20 +60,17 @@
   .login-card input[type="password"]{
     width: 100%;
     padding: 12px 14px;
-    /* margin-bottom: 15px; removido daqui */
     border-radius: 8px;
     border: 1px solid #e6e9ee;
     font-size: 15px;
   }
   
-  /* NOVO: Container para o campo de senha + olho */
   .password-container {
       position: relative;
       width: 100%;
-      margin-bottom: 15px; /* Margem aplicada ao container */
+      margin-bottom: 15px;
   }
 
-  /* NOVO: Ícone de olho/cadeado */
   .toggle-password {
       position: absolute;
       right: 15px;
@@ -141,6 +138,17 @@
   .card-left .title{ font-size:24px; margin:10px 0 6px; font-weight:700; color:#0b1220; }
   .card-left .desc{ color:var(--muted); line-height:1.5; margin-bottom:12px; }
   .meta{ margin-top:12px; font-size:13px; color:var(--muted) }
+
+  /* NOVO: Estilo para garantir que textos longos quebrem a linha no card */
+  .meta span { 
+    word-break: break-word; 
+    display: block; /* Garante que o span ocupe toda a largura */
+  }
+  .meta strong {
+      display: block; /* Garante que o label Strong fique em uma linha separada */
+      margin-top: 10px;
+  }
+
 
   .card-right{
     background: linear-gradient(180deg, rgba(255,255,255,0.7), rgba(255,255,255,0.95));
@@ -273,7 +281,19 @@
         <div><strong>Data:</strong> <span id="metaData">25/11/2025, 12:24:23</span></div>
         <div style="margin-top:6px;"><strong>Status:</strong> <span id="metaStatus">—</span></div>
       </div>
-    </aside>
+
+      <div class="meta" style="margin-top:0px;">
+        <div style="font-size:16px; font-weight:700; margin-top: 18px; margin-bottom: 4px; color: #0b1220;">Dados Analisados</div>
+        <div>
+          <strong>Texto Curto:</strong> 
+          <span id="pdfTextoCurto" style="color:#374151; font-weight: 500;">—</span>
+        </div>
+        <div>
+          <strong>Texto Longo:</strong> 
+          <span id="pdfTextoLongo" style="color:#374151; font-weight: 500;">—</span>
+        </div>
+      </div>
+      </aside>
 
     <section class="card-right">
       <form onsubmit="event.preventDefault(); validarCampos();">
@@ -321,22 +341,19 @@
       }
   }
 
-  // NOVO: Função para mostrar/esconder senha
   function togglePasswordVisibility() {
       const passwordField = document.getElementById('password');
       const toggleIcon = document.querySelector('.toggle-password');
       
       if (passwordField.type === 'password') {
           passwordField.type = 'text';
-          toggleIcon.innerText = '🔒'; // Mostra o cadeado (ou outro ícone de segurança)
+          toggleIcon.innerText = '🔒'; 
       } else {
           passwordField.type = 'password';
-          toggleIcon.innerText = '👁️'; // Mostra o olho
+          toggleIcon.innerText = '👁️';
       }
   }
 
-
-  // Geração de Data e Funções de Validação/PDF (Código original mantido)
 
   document.getElementById('metaData').innerText = new Date().toLocaleString();
 
@@ -345,6 +362,11 @@
     const longo = document.getElementById('textoLongo').value.trim();
     const msg = document.getElementById('mensagem');
     const metaStatus = document.getElementById('metaStatus');
+
+    // NOVO: Atualiza os campos no card antes de rodar a validação
+    document.getElementById('pdfTextoCurto').innerText = curto || 'Não preenchido';
+    document.getElementById('pdfTextoLongo').innerText = longo || 'Não preenchido';
+    // FIM NOVO
 
     if(!curto || !longo){
       msg.className='message err';
@@ -375,10 +397,20 @@
     document.getElementById('textoLongo').value='';
     document.getElementById('mensagem').style.display='none';
     document.getElementById('metaStatus').innerText = '—';
+    // NOVO: Limpa os campos de registro também
+    document.getElementById('pdfTextoCurto').innerText = '—';
+    document.getElementById('pdfTextoLongo').innerText = '—';
   }
 
   // Gera PDF a partir do elemento #cardToPrint (A4)
   async function gerarPDF(){
+    // NOVO: Garante que os campos de registro tenham o valor mais atualizado dos inputs
+    const curto = document.getElementById('textoCurto').value.trim();
+    const longo = document.getElementById('textoLongo').value.trim();
+    document.getElementById('pdfTextoCurto').innerText = curto || 'Não preenchido';
+    document.getElementById('pdfTextoLongo').innerText = longo || 'Não preenchido';
+    // FIM NOVO
+
     const element = document.getElementById('cardToPrint');
 
     const btns = document.querySelectorAll('.btn-pdf');
